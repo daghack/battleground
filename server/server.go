@@ -15,10 +15,10 @@ func init() {
 }
 
 type createGameRequest struct {
-	playerId model.Id `json:"playerId"`
+	PlayerId model.Id `json:"playerId"`
 }
 type createGameResponse struct {
-	gameId model.Id `json:"gameId"`
+	GameId model.Id `json:"gameId"`
 }
 
 func createGame(w http.ResponseWriter, r *http.Request) {
@@ -37,14 +37,14 @@ func createGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := createGameResponse{ gameId : gameId }
+	resp := createGameResponse{ GameId : gameId }
 	jsonResp, err := json.Marshal(resp)
 	if err != nil {
 		fmt.Fprintln(w, err)
 		return
 	}
 
-	games = append(games, model.NewGame(args.playerId))
+	games = append(games, model.NewGame(args.PlayerId))
 	w.Write(jsonResp)
 }
 
@@ -52,6 +52,37 @@ func joinGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func readyPlayer(w http.ResponseWriter, r *http.Request) {
+	type readyPlayerRequest struct {
+		PlayerId model.Id `json:"playerId"`
+		GameId model.Id `json:"gameId"`
+		Field []model.UnitType `json:"field"`
+	}
+	type readyPlayerResponse struct {
+		GameState *model.GameState `json:"gameState"`
+	}
+	jsonReq, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintln(w, err)
+		return
+	}
+	defer r.Body.Close()
+
+	args := readyPlayerRequest{}
+	err = json.Unmarshal(jsonReq, &args)
+	if err != nil {
+		fmt.Fprintln(w, err)
+		return
+	}
+	gameId := 0
+	fmt.Sscanf(string(args.GameId), "%d", &gameId)
+	games[gameId].ReadyPlayer(args.PlayerId, args.Field)
+	resp := readyPlayerResponse{ GameState : games[gameId] }
+	jsonResp, err := json.Marshal(resp)
+	if err != nil {
+		fmt.Fprintln(w, err)
+		return
+	}
+	w.Write(jsonResp)
 }
 
 func takeTurn(w http.ResponseWriter, r *http.Request) {
