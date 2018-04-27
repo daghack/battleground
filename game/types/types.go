@@ -28,20 +28,20 @@ type Unit struct {
 	Id Id `json:"unitId"`
 	Orientation Orientation `json:"orientation"`
 	UnitType UnitType `json:"unitType"`
-	PlayerId PlayerId `json:"playerId"`
+	PlayerId Id `json:"playerId"`
 }
 
 type BoardState map[Location]Unit
 
 type PlayerState struct {
-	Id PlayerId `json:"playerId"`
+	Id Id `json:"playerId"`
 	Ready bool `json:"ready"`
 	Field []UnitType `json:"field"`
 }
 
 type GameState struct {
-	Players map[PlayerId]PlayerState
-	CurrentPlayer PlayerId
+	Players map[Id]PlayerState
+	CurrentPlayer Id
 	CurrentTurn int
 }
 
