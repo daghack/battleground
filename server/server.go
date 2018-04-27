@@ -1,19 +1,20 @@
 package main // import "github.com/daghack/battleground/server"
 
 import (
-	"fmt"
 	"encoding/json"
-	"io/ioutil"
-	"net/http"
+	"fmt"
 	model "github.com/daghack/battleground/game/logic"
+	"io/ioutil"
+	"log"
+	"net/http"
 )
 
 //var games []*model.GameState
-var games map[model.Id] *model.GameState
+var games map[model.Id]*model.GameState
 
 func init() {
 	//games = []*model.GameState{}
-  games = map[model.Id] *model.GameState{}
+	games = map[model.Id]*model.GameState{}
 }
 
 type createGameRequest struct {
@@ -25,8 +26,16 @@ type createGameResponse struct {
 }
 
 type JoinGameInput struct {
-  PlayerId model.Id `json:"playerId"`
-  GameId model.Id `json:"gameId"`
+	PlayerId model.Id `json:"playerId"`
+	GameId   model.Id `json:"gameId"`
+}
+
+type TakeTurnInput struct {
+	GameId        model.Id          `json:"gameId"`
+	MoveFrom      model.Location    `json:"moveFrom"`
+	MoveTo        model.Location    `json:"moveTo"`
+	OrientTowards model.Orientation `json:"orientTowards"`
+	AttackAt      model.Location    `json:"attackAt"`
 }
 
 func createGame(w http.ResponseWriter, r *http.Request) {
@@ -45,56 +54,62 @@ func createGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Printf("Creating game %v", args)
+
 	resp := createGameResponse{
-    GameId: gameId,
-  }
+		GameId: gameId,
+	}
 	jsonResp, err := json.Marshal(resp)
 	if err != nil {
 		fmt.Fprintln(w, err)
 		return
 	}
 
-  games[gameId] = model.NewGame(args.PlayerId)
+	games[gameId] = model.NewGame(args.PlayerId)
 	w.Write(jsonResp)
+	log.Printf("Created game %v", gameId)
 }
 
 func joinGame(resp http.ResponseWriter, req *http.Request) {
-  jsonInput, err := ioutil.ReadAll(req.Body)
-  if err != nil {
-    http.Error(resp, err.Error(), 400)
-    return
-  }
+	jsonInput, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		http.Error(resp, err.Error(), 400)
+		return
+	}
 
-  var input JoinGameInput
-  err = json.Unmarshal(jsonInput, &input)
-  if err != nil {
-    http.Error(resp, err.Error(), 400)
-    return
-  }
+	var input JoinGameInput
+	err = json.Unmarshal(jsonInput, &input)
+	if err != nil {
+		http.Error(resp, err.Error(), 400)
+		return
+	}
+	log.Printf("Joining game for %v", input)
 
-  // First, lookup the game.
-  var game *model.GameState
+	// First, lookup the game.
+	var game *model.GameState
 
-  game, ok := games[input.GameId]
-  if !ok {
-    http.Error(resp, "Game not found", 404)
-    return
-  }
+	game, ok := games[input.GameId]
+	if !ok {
+		http.Error(resp, "Game not found", 404)
+		return
+	}
 
-  err = game.AddPlayer(input.PlayerId)
-  if err != nil {
-    http.Error(resp, err.Error(), 400)
-    return
-  }
+	err = game.AddPlayer(input.PlayerId)
+	if err != nil {
+		http.Error(resp, err.Error(), 400)
+		return
+	}
 
-  http.Error(resp, "", 201)
+	http.Error(resp, "", 201)
+
+	log.Printf("%v joined", input)
 }
 
 func readyPlayer(w http.ResponseWriter, r *http.Request) {
 	type readyPlayerRequest struct {
-		PlayerId model.Id `json:"playerId"`
-		GameId model.Id `json:"gameId"`
-		Field []model.UnitType `json:"field"`
+		PlayerId model.Id         `json:"playerId"`
+		GameId   model.Id         `json:"gameId"`
+		Field    []model.UnitType `json:"field"`
 	}
 	type readyPlayerResponse struct {
 		GameState *model.GameState `json:"gameState"`
@@ -114,7 +129,7 @@ func readyPlayer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	games[args.GameId].ReadyPlayer(args.PlayerId, args.Field)
-	resp := readyPlayerResponse{ GameState : games[args.GameId] }
+	resp := readyPlayerResponse{GameState: games[args.GameId]}
 	jsonResp, err := json.Marshal(resp)
 	if err != nil {
 		fmt.Fprintln(w, err)
@@ -123,7 +138,39 @@ func readyPlayer(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResp)
 }
 
-func takeTurn(w http.ResponseWriter, r *http.Request) {
+func takeTurn(resp http.ResponseWriter, req *http.Request) {
+	jsonInput, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		http.Error(resp, err.Error(), 400)
+		return
+	}
+
+	var input TakeTurnInput
+	err = json.Unmarshal(jsonInput, &input)
+	if err != nil {
+		http.Error(resp, err.Error(), 400)
+		return
+	}
+
+	log.Printf("Checking for game %s", input.GameId)
+	game, ok := games[input.GameId]
+	if !ok {
+		http.Error(resp, "Game does not exist", 404)
+		return
+	}
+
+	err = game.TakeTurn(
+		input.MoveFrom,
+		input.MoveTo,
+		input.OrientTowards,
+		true,
+	)
+	if err != nil {
+		http.Error(resp, err.Error(), 500)
+		return
+	}
+
+	http.Error(resp, "", 203)
 }
 
 func main() {
