@@ -1,0 +1,23 @@
+endpoints:
+	create_game() (GameId, PlayerId)
+	join_game(id: GameId!) PlayerId
+	begin_game(units: [UnitType!]!) GameState
+	take_turn(unit: UnitId!, moveTo: Location, orientTowards: Orientation, attackAt: Location) GameState
+
+GameId => string
+PlayerId => string
+UnitId => string
+UnitType => string
+Location => {
+	x, y int
+}
+Orientation => N | S | E | W
+Unit => {
+	id UnitId
+	orientation Orientation
+	type UnitType
+}
+GameState => {
+	map[Location]Unit
+}
+
