@@ -5,19 +5,21 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
-  "log"
 	model "github.com/daghack/battleground/game/logic"
 )
 
-var games []*model.GameState
+//var games []*model.GameState
+var games map[model.Id] *model.GameState
 
 func init() {
-	games = []*model.GameState{}
+	//games = []*model.GameState{}
+  games = map[model.Id] *model.GameState{}
 }
 
 type createGameRequest struct {
 	PlayerId model.Id `json:"playerId"`
 }
+
 type createGameResponse struct {
 	GameId model.Id `json:"gameId"`
 }
@@ -52,7 +54,7 @@ func createGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	games = append(games, model.NewGame(args.PlayerId, gameId))
+  games[gameId] = model.NewGame(args.PlayerId)
 	w.Write(jsonResp)
 }
 
@@ -73,14 +75,8 @@ func joinGame(resp http.ResponseWriter, req *http.Request) {
   // First, lookup the game.
   var game *model.GameState
 
-  for _, _game := range games {
-    log.Printf("Checking game %s", _game.Id)
-    if _game.Id == input.GameId {
-      game = _game
-    }
-  }
-
-  if game == nil {
+  game, ok := games[input.GameId]
+  if !ok {
     http.Error(resp, "Game not found", 404)
     return
   }
@@ -95,6 +91,36 @@ func joinGame(resp http.ResponseWriter, req *http.Request) {
 }
 
 func readyPlayer(w http.ResponseWriter, r *http.Request) {
+	type readyPlayerRequest struct {
+		PlayerId model.Id `json:"playerId"`
+		GameId model.Id `json:"gameId"`
+		Field []model.UnitType `json:"field"`
+	}
+	type readyPlayerResponse struct {
+		GameState *model.GameState `json:"gameState"`
+	}
+	jsonReq, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintln(w, err)
+		return
+	}
+	defer r.Body.Close()
+
+	args := readyPlayerRequest{}
+	err = json.Unmarshal(jsonReq, &args)
+	if err != nil {
+		fmt.Fprintln(w, err)
+		return
+	}
+
+	games[args.GameId].ReadyPlayer(args.PlayerId, args.Field)
+	resp := readyPlayerResponse{ GameState : games[args.GameId] }
+	jsonResp, err := json.Marshal(resp)
+	if err != nil {
+		fmt.Fprintln(w, err)
+		return
+	}
+	w.Write(jsonResp)
 }
 
 func takeTurn(w http.ResponseWriter, r *http.Request) {
