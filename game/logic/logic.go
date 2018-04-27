@@ -31,3 +31,16 @@ func (gs *GameState) ReadyPlayer(playerId Id, units []UnitType) error {
 	}
 	return fmt.Errorf("Player Has Not Joined Game")
 }
+
+func (gs *GameState) TakeTurn(moveFrom, moveTo Location, orientTowards Orientation, attack bool) error {
+	if _, ok := gs.BoardState[moveFrom]; !ok {
+		return fmt.Errorf("No Unit At That Position")
+	} else if _, ok := gs.BoardState[moveTo]; ok {
+		return fmt.Errorf("Another Unit At That Position")
+	}
+	unit := gs.BoardState[moveFrom]
+	unit.Orientation = orientTowards
+	delete(gs.BoardState, moveFrom)
+	gs.BoardState[moveTo] = unit
+	return nil
+}
