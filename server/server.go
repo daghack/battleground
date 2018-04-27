@@ -60,6 +60,7 @@ func createGame(w http.ResponseWriter, r *http.Request) {
 		GameId: gameId,
 	}
 	jsonResp, err := json.Marshal(resp)
+	fmt.Println(string(jsonResp))
 	if err != nil {
 		fmt.Fprintln(w, err)
 		return
