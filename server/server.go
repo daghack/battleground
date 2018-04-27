@@ -3,7 +3,7 @@ package main // import "github.com/daghack/battleground/server"
 import (
 	"fmt"
 	"encoding/json"
-	model "github.com/daghack/battleground/game/types"
+	model "github.com/daghack/battleground/game/logic"
 )
 
 func main() {

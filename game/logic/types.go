@@ -1,4 +1,4 @@
-package types // import "github.com/daghack/battlegrounds/game/types"
+package types // import "github.com/daghack/battlegrounds/game/logic"
 
 import (
 	"encoding/json"
@@ -41,7 +41,7 @@ type PlayerState struct {
 
 type GameState struct {
 	Id Id `json:"id"`
-	Players map[Id]PlayerState `json:"players"`
+	Players map[Id]*PlayerState `json:"players"`
 	CurrentPlayer Id `json:"currentId"`
 	CurrentTurn int `json:"currentTurn"`
 }
