@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+  "log"
 	model "github.com/daghack/battleground/game/logic"
 )
 
@@ -15,10 +16,15 @@ func init() {
 }
 
 type createGameRequest struct {
-	playerId model.Id `json:"playerId"`
+	PlayerId model.Id `json:"playerId"`
 }
 type createGameResponse struct {
-	gameId model.Id `json:"gameId"`
+	GameId model.Id `json:"gameId"`
+}
+
+type JoinGameInput struct {
+  PlayerId model.Id `json:"playerId"`
+  GameId model.Id `json:"gameId"`
 }
 
 func createGame(w http.ResponseWriter, r *http.Request) {
@@ -37,18 +43,55 @@ func createGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := createGameResponse{ gameId : gameId }
+	resp := createGameResponse{
+    GameId: gameId,
+  }
 	jsonResp, err := json.Marshal(resp)
 	if err != nil {
 		fmt.Fprintln(w, err)
 		return
 	}
 
-	games = append(games, model.NewGame(args.playerId))
+	games = append(games, model.NewGame(args.PlayerId, gameId))
 	w.Write(jsonResp)
 }
 
-func joinGame(w http.ResponseWriter, r *http.Request) {
+func joinGame(resp http.ResponseWriter, req *http.Request) {
+  jsonInput, err := ioutil.ReadAll(req.Body)
+  if err != nil {
+    http.Error(resp, err.Error(), 400)
+    return
+  }
+
+  var input JoinGameInput
+  err = json.Unmarshal(jsonInput, &input)
+  if err != nil {
+    http.Error(resp, err.Error(), 400)
+    return
+  }
+
+  // First, lookup the game.
+  var game *model.GameState
+
+  for _, _game := range games {
+    log.Printf("Checking game %s", _game.Id)
+    if _game.Id == input.GameId {
+      game = _game
+    }
+  }
+
+  if game == nil {
+    http.Error(resp, "Game not found", 404)
+    return
+  }
+
+  err = game.AddPlayer(input.PlayerId)
+  if err != nil {
+    http.Error(resp, err.Error(), 400)
+    return
+  }
+
+  http.Error(resp, "", 201)
 }
 
 func readyPlayer(w http.ResponseWriter, r *http.Request) {
