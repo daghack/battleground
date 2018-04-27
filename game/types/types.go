@@ -1,5 +1,11 @@
 package types // import "github.com/daghack/battlegrounds/game/types"
 
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
+
 const (
 	NORTH int = iota
 	SOUTH
@@ -26,7 +32,7 @@ type Unit struct {
 
 type GameState map[Location]Unit
 
-func (gs *GameState) MarshalJSON() ([]byte, error) {
+func (gs GameState) MarshalJSON() ([]byte, error) {
 	contents := []string{}
 	for k, v := range gs {
 		unitBytes, err := json.Marshal(v)
@@ -35,7 +41,7 @@ func (gs *GameState) MarshalJSON() ([]byte, error) {
 		}
 		contents = append(contents, fmt.Sprintf(`"%d,%d" : %s`, k.X, k.Y, string(unitBytes)))
 	}
-	return []byte("{"+strings.Join(contents, ", ")+"}")
+	return []byte("{"+strings.Join(contents, ", ")+"}"), nil
 
 }
 
