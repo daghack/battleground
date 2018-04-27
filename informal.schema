@@ -16,8 +16,17 @@ Unit => {
 	id UnitId
 	orientation Orientation
 	type UnitType
+	player PlayerId
+}
+BoardState => map[Location]Unit
+PlayerState => {
+	id PlayerId
+	ready bool
+	field [UnitType]
 }
 GameState => {
-	map[Location]Unit
+	players map[PlayerId]PlayerState
+	currentPlayer PlayerId
+	currentTurn int
 }
 

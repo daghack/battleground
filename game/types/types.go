@@ -28,25 +28,37 @@ type Unit struct {
 	Id Id `json:"unitId"`
 	Orientation Orientation `json:"orientation"`
 	UnitType UnitType `json:"unitType"`
+	PlayerId PlayerId `json:"playerId"`
 }
 
-type GameState map[Location]Unit
+type BoardState map[Location]Unit
 
-func (gs GameState) MarshalJSON() ([]byte, error) {
+type PlayerState struct {
+	Id PlayerId `json:"playerId"`
+	Ready bool `json:"ready"`
+	Field []UnitType `json:"field"`
+}
+
+type GameState struct {
+	Players map[PlayerId]PlayerState
+	CurrentPlayer PlayerId
+	CurrentTurn int
+}
+
+func (bs BoardState) MarshalJSON() ([]byte, error) {
 	contents := []string{}
-	for k, v := range gs {
+	for k, v := range bs {
 		unitBytes, err := json.Marshal(v)
 		if err != nil {
 			return nil, err
 		}
 		contents = append(contents, fmt.Sprintf(`"%d,%d" : %s`, k.X, k.Y, string(unitBytes)))
 	}
-	return []byte("{"+strings.Join(contents, ", ")+"}"), nil
-
+	return []byte("{"+strinbs.Join(contents, ", ")+"}"), nil
 }
 
-func (gs *GameState) UnmarshalJSON(data []byte) error {
-	gamestate := *gs
+func (bs *BoardState) UnmarshalJSON(data []byte) error {
+	gamestate := *bs
 	unitMap := map[string]Unit{}
 	err := json.Unmarshal(data, &unitMap)
 	if err != nil {
