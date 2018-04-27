@@ -2,7 +2,7 @@ endpoints:
 	create_game(id: PlayerId!) GameId
 	join_game(id: PlayerId!, id: GameId!)
 	ready_player(playerId: PlayerId!, gameId: GameId!, field: [UnitType!]!) GameState
-	take_turn(gameId : GameId, unit: UnitId!, moveTo: Location, orientTowards: Orientation, attack: bool) GameState
+	take_turn(gameId : GameId, moveTo: Location, moveFrom: Location, orientTowards: Orientation, attack: bool) GameState
 
 GameId => string
 PlayerId => string
