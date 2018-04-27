@@ -44,6 +44,7 @@ type GameState struct {
 	Players map[Id]*PlayerState `json:"players"`
 	CurrentPlayer Id `json:"currentId"`
 	CurrentTurn int `json:"currentTurn"`
+	BoardState BoardState `json:"boardState"`
 }
 
 func (bs BoardState) MarshalJSON() ([]byte, error) {
