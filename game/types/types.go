@@ -54,7 +54,7 @@ func (bs BoardState) MarshalJSON() ([]byte, error) {
 		}
 		contents = append(contents, fmt.Sprintf(`"%d,%d" : %s`, k.X, k.Y, string(unitBytes)))
 	}
-	return []byte("{"+strinbs.Join(contents, ", ")+"}"), nil
+	return []byte("{"+strings.Join(contents, ", ")+"}"), nil
 }
 
 func (bs *BoardState) UnmarshalJSON(data []byte) error {
