@@ -1,6 +1,6 @@
 endpoints:
-	create_game() (GameId, PlayerId)
-	join_game(id: GameId!) PlayerId
+	create_game(id: PlayerId) GameId
+	join_game(id: PlayerId, id: GameId!)
 	begin_game(units: [UnitType!]!) GameState
 	take_turn(unit: UnitId!, moveTo: Location, orientTowards: Orientation, attackAt: Location) GameState
 
