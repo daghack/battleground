@@ -8,6 +8,7 @@ import (
 
 func main() {
 	gs := make(model.GameState)
+	gs[model.Location{X : 0, Y : 0}] = model.Unit{}
 	bytes, err := json.Marshal(gs)
 	if err != nil {
 		panic(err)
