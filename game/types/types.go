@@ -46,6 +46,7 @@ func (gs GameState) MarshalJSON() ([]byte, error) {
 }
 
 func (gs *GameState) UnmarshalJSON(data []byte) error {
+	gamestate := *gs
 	unitMap := map[string]Unit{}
 	err := json.Unmarshal(data, &unitMap)
 	if err != nil {
@@ -53,8 +54,8 @@ func (gs *GameState) UnmarshalJSON(data []byte) error {
 	}
 	for k, v := range unitMap {
 		loc := Location{}
-		fmt.Scanf(k, "%d,%d", &loc.X, &loc.Y)
-		(*gs)[loc] = v
+		fmt.Sscanf(k, "%d,%d", &loc.X, &loc.Y)
+		gamestate[loc] = v
 	}
 	return nil
 }

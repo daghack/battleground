@@ -14,4 +14,10 @@ func main() {
 		panic(err)
 	}
 	fmt.Println(string(bytes))
+	gs2 := make(model.GameState)
+	err = json.Unmarshal(bytes, &gs2)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(gs2)
 }
