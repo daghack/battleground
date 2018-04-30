@@ -86,8 +86,8 @@ func (dbh *DBHandler) CreateGame(boardSize, pieceCount int) (string, error) {
 	return id, err
 }
 
-func (dbh *DBHandler) JoinGame(playerId, gameId string) error {
-	_, err := dbh.db.Exec(joinGame, playerId, gameId)
+func (dbh *DBHandler) JoinGame(gameId, playerId string) error {
+	_, err := dbh.db.Exec(joinGame, gameId, playerId)
 	return err
 }
 

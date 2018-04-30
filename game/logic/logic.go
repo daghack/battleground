@@ -23,6 +23,14 @@ func (g *GameManager) CreateGame(playerId string) (string, error) {
 }
 
 func (g *GameManager) JoinGame(gameId, playerId string) error {
+	err := g.dbh.JoinGame(gameId, playerId)
+	if err != nil {
+		return err
+	}
+	return g.UpdatePlayerStatus(gameId, playerId, STATUS_JOINED)
+}
+
+func (g *GameManager) UpdatePlayerStatus(gameId, playerId string, STATUS int) error {
 	activeGame, err := g.dbh.FetchGame(gameId)
 	if err != nil {
 		return err
@@ -32,7 +40,7 @@ func (g *GameManager) JoinGame(gameId, playerId string) error {
 	if err != nil {
 		return err
 	}
-	gamestate.PlayerStatus[playerId] = STATUS_JOINED
+	gamestate.PlayerStatus[playerId] = STATUS
 	return g.dbh.UpdateGame(gameId, gamestate)
 }
 
