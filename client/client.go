@@ -25,6 +25,8 @@ var mouseUp = true
 var target = 0
 var targets = [2]model.Location{}
 var gameId = ""
+var playerId = ""
+var gamestate model.Game
 
 func update(screen *ebiten.Image) error {
 	if ebiten.IsRunningSlowly() {
@@ -50,11 +52,13 @@ func update(screen *ebiten.Image) error {
 	ebitenutil.DrawRect(screen, float64(targets[0].X * tilesize), float64(targets[0].Y * tilesize), tilesize, tilesize, color.White)
 	ebitenutil.DrawRect(screen, float64(targets[1].X * tilesize), float64(targets[1].Y * tilesize), tilesize, tilesize, color.White)
 	ebitenutil.DebugPrint(screen, fmt.Sprintf(`GameId: "%s"`, gameId))
+	ebitenutil.DebugPrint(screen, fmt.Sprintf(`GameState: "%v"`, gamestate))
 	return nil
 }
 
 func main() {
 	if len(os.Args) > 2 && os.Args[1] == "create" {
+		playerId = os.Args[2]
 		createRequest := struct { PlayerId string `json:"playerId"` }{ PlayerId : os.Args[2] }
 		reqJson, err := json.Marshal(createRequest)
 		if err != nil {
@@ -80,6 +84,7 @@ func main() {
 		err = json.Unmarshal(respJson, &createResp)
 		gameId = createResp.GameId
 	} else if len(os.Args) > 3 && os.Args[1] == "join" {
+		playerId = os.Args[2]
 		createRequest := struct {
 			PlayerId string `json:"playerId"`
 			GameId string `json:"gameId"`
@@ -100,7 +105,35 @@ func main() {
 		}
 		gameId = os.Args[3]
 	}
-	err := ebiten.Run(update, screenWidth, screenHeight, 2, "Battleground Client");
+	readyRequest := struct {
+		PlayerId string `json:"playerId"`
+		GameId string `json:"gameId"`
+		Field []string `json:"field"`
+	}{PlayerId : playerId, GameId : gameId, Field: []string{"footman", "footman", "footman", "footman", "footman", "footman", "footman", "footman"}}
+	reqJson, err := json.Marshal(readyRequest)
+	if err != nil {
+		panic(err)
+	}
+	buff := bytes.NewBuffer(reqJson)
+	req, err := http.NewRequest("GET", "http://localhost:6969/ready_player", buff)
+	if err != nil {
+		panic(err)
+	}
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	respJson, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	err = json.Unmarshal(respJson, &gamestate)
+	if err != nil {
+		panic(err)
+	}
+	err = ebiten.Run(update, screenWidth, screenHeight, 2, "Battleground Client");
 	if err != nil {
 		panic(err)
 	}
