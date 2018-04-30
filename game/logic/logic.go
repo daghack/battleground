@@ -78,14 +78,17 @@ func (g *GameManager) FetchGame(gameId string) (*Game, error) {
 	if err != nil {
 		return nil, err
 	}
+	if gamestate.UnitMap == nil {
+		gamestate.UnitMap = map[Location]Unit{}
+	}
+	if gamestate.PlayerStatus == nil {
+		gamestate.PlayerStatus = map[string]int{}
+	}
 	return gamestate, nil
 }
 
 func updatePlayerStatus(playerId string, STATUS int) GameUpdater {
 	return func(gamestate *Game) error {
-		if gamestate.PlayerStatus == nil {
-			gamestate.PlayerStatus = make(map[string]int)
-		}
 		gamestate.PlayerStatus[playerId] = STATUS
 		return nil
 	}
@@ -93,9 +96,6 @@ func updatePlayerStatus(playerId string, STATUS int) GameUpdater {
 
 func placeUnits(playerId string, unitTypes []string) GameUpdater {
 	return func(gamestate *Game) error {
-		if gamestate.UnitMap == nil {
-			gamestate.UnitMap = make(UnitMap)
-		}
 		checkloc := Location{X:0, Y:0}
 		for i, unitType := range unitTypes {
 			loc := Location{X:i}
