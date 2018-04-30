@@ -30,8 +30,14 @@ type GameManager struct {
 	dbh *DBHandler
 }
 
-func NewGameManager() (*GameManager, error) {
-	return nil, fmt.Errorf("Not implemented")
+func NewGameManager(dbstring, loadfile string) (*GameManager, error) {
+	dbh, err := NewDBHandler(dbstring, loadfile)
+	if err != nil {
+		return nil, err
+	}
+	return &GameManager {
+		dbh : dbh,
+	}, nil
 }
 
 func (g *GameManager) CreateGame(playerId string) (string, error) {
@@ -57,6 +63,19 @@ func (g *GameManager) ReadyPlayer(gameId, playerId string, unitTypes []string) e
 
 func (g *GameManager) MoveUnit(gameId, playerId string, srcLocation, dstLocation Location, orientation int) error {
 	return g.GameUpdates(gameId, moveUnit(playerId, srcLocation, dstLocation, orientation))
+}
+
+func (g *GameManager) FetchGame(gameId string) (*Game, error) {
+	activeGame, err := g.dbh.FetchGame(gameId)
+	if err != nil {
+		return nil, err
+	}
+	gamestate := &Game{}
+	err = json.Unmarshal(activeGame.GameState, gamestate)
+	if err != nil {
+		return nil, err
+	}
+	return gamestate, nil
 }
 
 func updatePlayerStatus(playerId string, STATUS int) GameUpdater {
