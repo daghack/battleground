@@ -35,6 +35,14 @@ func NewGameManager(dbstring, loadfile string) (*GameManager, error) {
 	}, nil
 }
 
+func (g *GameManager) CreatePlayer(nickname, passkey string) (string, error) {
+	player := &Player{
+		Username : nickname,
+		Passkey : passkey,
+	}
+	return g.dbh.CreatePlayer(player)
+}
+
 func (g *GameManager) CreateGame(playerId string) (string, error) {
 	gameId, err := g.dbh.CreateGame(8, 8)
 	if err != nil {

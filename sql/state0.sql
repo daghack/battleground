@@ -3,7 +3,7 @@ create extension if not exists pgcrypto;
 create table if not exists players (
 	id uuid primary key default gen_random_uuid(),
 	username text not null,
-	pass_key text not null
+	passkey text not null
 );
 
 create table if not exists unit_types (
