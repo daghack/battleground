@@ -1,9 +1,7 @@
 package types // import "github.com/daghack/battlegrounds/game/logic"
 
 import (
-	"encoding/json"
 	"fmt"
-	"strings"
 )
 
 const (
