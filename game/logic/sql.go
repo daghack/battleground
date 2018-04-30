@@ -11,7 +11,7 @@ const fetchPlayer string = `select * from players where id=$1`
 const createPlayer string = `insert into players (id, username, passkey) values (:id, :username, :passkey)`
 
 const fetchGame string = `select * from active_games where id=$1`
-const createGame string = `insert into active_games (board_size, piece_count, board_state) values (:board_size, :piece_count, :board_state)`
+const createGame string = `insert into active_games (board_size, piece_count, board_state) values (:board_size, :piece_count, :board_state) returning id`
 const joinGame string = `insert into active_players (game_id, player_id) values ($1, $2)`
 
 type DBHandler struct {
@@ -67,14 +67,21 @@ func (dbh *DBHandler) FetchGame(gameId string) (*ActiveGame, error) {
 	return activeGame, nil
 }
 
-func (dbh *DBHandler) CreateGame(boardSize, pieceCount int) error {
+func (dbh *DBHandler) CreateGame(boardSize, pieceCount int) (string, error) {
 	game := &ActiveGame{
 		BoardSize : boardSize,
 		PieceCount : pieceCount,
 		BoardState : []byte(`{}`),
 	}
-	_, err := dbh.db.NamedExec(createGame, game)
-	return err
+	rows, err := dbh.db.NamedQuery(createGame, game)
+	if err != nil {
+		return "", err
+	}
+	id := ""
+	for rows.Next() {
+		err = rows.Scan(&id)
+	}
+	return id, err
 }
 
 func (dbh *DBHandler) JoinGame(playerId, gameId string) error {
