@@ -141,6 +141,7 @@ func readyPlayer(resp http.ResponseWriter, r *http.Request) {
 		return
 	}
 	rpResp := readyPlayerResponse{GameState: game}
+	fmt.Println("Player Readied. Gamestate: ", *rpResp.GameState)
 	jsonResp, err := json.Marshal(rpResp)
 	if err != nil {
 		http.Error(resp, err.Error(), 400)

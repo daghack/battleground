@@ -51,8 +51,7 @@ func update(screen *ebiten.Image) error {
 	}
 	ebitenutil.DrawRect(screen, float64(targets[0].X * tilesize), float64(targets[0].Y * tilesize), tilesize, tilesize, color.White)
 	ebitenutil.DrawRect(screen, float64(targets[1].X * tilesize), float64(targets[1].Y * tilesize), tilesize, tilesize, color.White)
-	ebitenutil.DebugPrint(screen, fmt.Sprintf(`GameId: "%s"`, gameId))
-	ebitenutil.DebugPrint(screen, fmt.Sprintf(`GameState: "%v"`, gamestate))
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("GameId: '%s'\nGameState: '%v'", gameId, gamestate))
 	return nil
 }
 
@@ -110,6 +109,7 @@ func main() {
 		GameId string `json:"gameId"`
 		Field []string `json:"field"`
 	}{PlayerId : playerId, GameId : gameId, Field: []string{"footman", "footman", "footman", "footman", "footman", "footman", "footman", "footman"}}
+	fmt.Println("Submitting Ready Player")
 	reqJson, err := json.Marshal(readyRequest)
 	if err != nil {
 		panic(err)
@@ -124,15 +124,18 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println("Reading Body")
 	respJson, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		panic(err)
 	}
 	defer resp.Body.Close()
+	fmt.Println(string(respJson))
 	err = json.Unmarshal(respJson, &gamestate)
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println(gamestate)
 	err = ebiten.Run(update, screenWidth, screenHeight, 2, "Battleground Client");
 	if err != nil {
 		panic(err)

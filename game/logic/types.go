@@ -63,8 +63,8 @@ func (bs UnitMap) MarshalJSON() ([]byte, error) {
 }
 
 func (bs *UnitMap) UnmarshalJSON(data []byte) error {
+	*bs = map[Location]Unit{}
 	unitmap := *bs
-	unitmap = map[Location]Unit{}
 	unitmap_json := map[string]Unit{}
 	err := json.Unmarshal(data, &unitmap_json)
 	if err != nil {
