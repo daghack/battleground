@@ -2,6 +2,8 @@ package types // import "github.com/daghack/battlegrounds/game/logic"
 
 import (
 	"fmt"
+	"strings"
+	"encoding/json"
 )
 
 const (
@@ -48,39 +50,39 @@ type Game struct {
 	Turn         int            `json:"turn"`
 }
 
-func (loc Location) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf("%d,%d", loc.X, loc.Y)), nil
-}
-
-func (loc *Location) UnmarshalJSON(data []byte) {
-	str := string(data)
-	fmt.Sscanf(str, "%d,%d", &loc.X, &loc.Y)
-}
-
-//func (bs UnitMap) MarshalJSON() ([]byte, error) {
-//	contents := []string{}
-//	for k, v := range bs {
-//		unitBytes, err := json.Marshal(v)
-//		if err != nil {
-//			return nil, err
-//		}
-//		contents = append(contents, fmt.Sprintf(`"%d,%d" : %s`, k.X, k.Y, string(unitBytes)))
-//	}
-//	return []byte("{" + strings.Join(contents, ", ") + "}"), nil
+//func (loc Location) MarshalJSON() ([]byte, error) {
+//	return []byte(fmt.Sprintf("%d,%d", loc.X, loc.Y)), nil
 //}
 //
-//func (bs *UnitMap) UnmarshalJSON(data []byte) error {
-//	*bs = map[Location]Unit{}
-//	unitmap := *bs
-//	unitmap_json := map[string]Unit{}
-//	err := json.Unmarshal(data, &unitmap_json)
-//	if err != nil {
-//		return err
-//	}
-//	for k, v := range unitmap_json {
-//		loc := Location{}
-//		fmt.Sscanf(k, "%d,%d", &loc.X, &loc.Y)
-//		unitmap[loc] = v
-//	}
-//	return nil
+//func (loc *Location) UnmarshalJSON(data []byte) {
+//	str := string(data)
+//	fmt.Sscanf(str, "%d,%d", &loc.X, &loc.Y)
 //}
+
+func (bs UnitMap) MarshalJSON() ([]byte, error) {
+	contents := []string{}
+	for k, v := range bs {
+		unitBytes, err := json.Marshal(v)
+		if err != nil {
+			return nil, err
+		}
+		contents = append(contents, fmt.Sprintf(`"%d,%d" : %s`, k.X, k.Y, string(unitBytes)))
+	}
+	return []byte("{" + strings.Join(contents, ", ") + "}"), nil
+}
+
+func (bs *UnitMap) UnmarshalJSON(data []byte) error {
+	*bs = map[Location]Unit{}
+	unitmap := *bs
+	unitmap_json := map[string]Unit{}
+	err := json.Unmarshal(data, &unitmap_json)
+	if err != nil {
+		return err
+	}
+	for k, v := range unitmap_json {
+		loc := Location{}
+		fmt.Sscanf(k, "%d,%d", &loc.X, &loc.Y)
+		unitmap[loc] = v
+	}
+	return nil
+}
