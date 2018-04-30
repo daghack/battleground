@@ -7,10 +7,15 @@ import (
 )
 
 const (
-	NORTH int = iota
-	SOUTH
-	EAST
-	WEST
+	ORIENT_NORTH int = iota
+	ORIENT_SOUTH
+	ORIENT_EAST
+	ORIENT_WEST
+)
+
+const (
+	STATUS_JOINED int = iota
+	STATUS_READY  int = iota
 )
 
 type Location struct {
@@ -18,35 +23,35 @@ type Location struct {
 	Y int `json:"y"`
 }
 
-type Orientation int
-
-type Id string
-
-type UnitType string
-
 type Unit struct {
-	Id Id `json:"unitId"`
-	Orientation Orientation `json:"orientation"`
-	UnitType UnitType `json:"unitType"`
-	PlayerId Id `json:"playerId"`
+	Id          string `json:"unitId"`
+	Orientation int    `json:"orientation"`
+	UnitType    string `json:"unitType"`
+	PlayerId    string `json:"playerId"`
 }
 
-type BoardState map[Location]Unit
+type UnitMap map[Location]Unit
 
 type Player struct {
-	Id string `db:"id"`
+	Id       string `db:"id"`
 	Username string `db:"username"`
-	Passkey string `db:"passkey"`
+	Passkey  string `db:"passkey"`
 }
 
 type ActiveGame struct {
-	Id string `db:"id"`
-	BoardSize int `db:"board_size"`
-	PieceCount int `db:"piece_count"`
-	BoardState []byte `db:"board_state"`
+	Id         string `db:"id"`
+	BoardSize  int    `db:"board_size"`
+	PieceCount int    `db:"piece_count"`
+	GameState  []byte `db:"game_state"`
 }
 
-func (bs BoardState) MarshalJSON() ([]byte, error) {
+type Game struct {
+	UnitMap      UnitMap        `json:"unit_map"`
+	PlayerStatus map[string]int `json:"player_status"`
+	Turn         int            `json:"turn"`
+}
+
+func (bs UnitMap) MarshalJSON() ([]byte, error) {
 	contents := []string{}
 	for k, v := range bs {
 		unitBytes, err := json.Marshal(v)
@@ -55,10 +60,10 @@ func (bs BoardState) MarshalJSON() ([]byte, error) {
 		}
 		contents = append(contents, fmt.Sprintf(`"%d,%d" : %s`, k.X, k.Y, string(unitBytes)))
 	}
-	return []byte("{"+strings.Join(contents, ", ")+"}"), nil
+	return []byte("{" + strings.Join(contents, ", ") + "}"), nil
 }
 
-func (bs *BoardState) UnmarshalJSON(data []byte) error {
+func (bs *UnitMap) UnmarshalJSON(data []byte) error {
 	gamestate := *bs
 	unitMap := map[string]Unit{}
 	err := json.Unmarshal(data, &unitMap)

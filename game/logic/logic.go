@@ -1,8 +1,41 @@
 package types // import "github.com/daghack/battleground/game/logic"
 
 import (
-//	"fmt"
+	"encoding/json"
+	"fmt"
 )
+
+type GameManager struct {
+	dbh *DBHandler
+}
+
+func NewGameManager() (*GameManager, error) {
+	return nil, fmt.Errorf("Not implemented")
+}
+
+func (g *GameManager) CreateGame(playerId string) (string, error) {
+	gameId, err := g.dbh.CreateGame(8, 8)
+	if err != nil {
+		return "", err
+	}
+	err = g.JoinGame(gameId, playerId)
+	return gameId, err
+}
+
+func (g *GameManager) JoinGame(gameId, playerId string) error {
+	activeGame, err := g.dbh.FetchGame(gameId)
+	if err != nil {
+		return err
+	}
+	gamestate := &Game{}
+	err = json.Unmarshal(activeGame.GameState, gamestate)
+	if err != nil {
+		return err
+	}
+	gamestate.PlayerStatus[playerId] = STATUS_JOINED
+	return g.dbh.UpdateGame(gameId, gamestate)
+}
+
 /*
 func NewGame(playerId Id) *GameState {
 	return &GameState{
