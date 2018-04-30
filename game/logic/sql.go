@@ -9,7 +9,7 @@ import (
 )
 
 const fetchPlayer string = `select * from players where id=$1`
-const createPlayer string = `insert into players (id, username, passkey) values (:id, :username, :passkey)`
+const createPlayer string = `insert into players (username, passkey) values (:username, :passkey) returning id`
 
 const fetchGame string = `select * from active_games where id=$1`
 const createGame string = `insert into active_games (board_size, piece_count, game_state) values (:board_size, :piece_count, :game_state) returning id`
@@ -55,9 +55,16 @@ func (dbh *DBHandler) FetchPlayer(playerId string) (*Player, error) {
 	return player, nil
 }
 
-func (dbh *DBHandler) CreatePlayer(player *Player) error {
-	_, err := dbh.db.NamedExec(createPlayer, player)
-	return err
+func (dbh *DBHandler) CreatePlayer(player *Player) (string, error) {
+	rows, err := dbh.db.NamedQuery(createPlayer, player)
+	if err != nil {
+		return "", err
+	}
+	id := ""
+	for rows.Next() {
+		err = rows.Scan(&id)
+	}
+	return id, err
 }
 
 func (dbh *DBHandler) FetchGame(gameId string) (*ActiveGame, error) {
