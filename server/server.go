@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"fmt"
 )
 
 //var games []*model.GameState
@@ -17,6 +18,11 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+	playerId, err := gameManager.CreatePlayer("daghack", "supersecret")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Added User:", playerId)
 }
 
 type createGameRequest struct {
