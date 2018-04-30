@@ -1,9 +1,9 @@
 package types // import "github.com/daghack/battleground/game/logic"
 
 import (
-	"fmt"
+//	"fmt"
 )
-
+/*
 func NewGame(playerId Id) *GameState {
 	return &GameState{
 		Players : map[Id]*PlayerState{
@@ -44,3 +44,4 @@ func (gs *GameState) TakeTurn(moveFrom, moveTo Location, orientTowards Orientati
 	gs.BoardState[moveTo] = unit
 	return nil
 }
+*/

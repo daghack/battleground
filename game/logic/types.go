@@ -33,18 +33,17 @@ type Unit struct {
 
 type BoardState map[Location]Unit
 
-type PlayerState struct {
-	Id Id `json:"playerId"`
-	Ready bool `json:"ready"`
-	Field []UnitType `json:"field"`
+type Player struct {
+	Id string `db:"id"`
+	Username string `db:"username"`
+	Passkey string `db:"passkey"`
 }
 
-type GameState struct {
-	Id Id `json:"id"`
-	Players map[Id]*PlayerState `json:"players"`
-	CurrentPlayer Id `json:"currentId"`
-	CurrentTurn int `json:"currentTurn"`
-	BoardState BoardState `json:"boardState"`
+type ActiveGame struct {
+	Id string `db:"id"`
+	BoardSize int `db:"board_size"`
+	PieceCount int `db:"piece_count"`
+	BoardState []byte `db:"board_state"`
 }
 
 func (bs BoardState) MarshalJSON() ([]byte, error) {
