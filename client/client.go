@@ -26,7 +26,7 @@ var target = 0
 var targets = [2]model.Location{}
 var gameId = ""
 var playerId = ""
-var gamestate model.Game
+var gamestate *model.Game
 
 func update(screen *ebiten.Image) error {
 	if ebiten.IsRunningSlowly() {
@@ -53,6 +53,14 @@ func update(screen *ebiten.Image) error {
 	ebitenutil.DrawRect(screen, float64(targets[1].X * tilesize), float64(targets[1].Y * tilesize), tilesize, tilesize, color.White)
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("GameId: '%s'\nGameState: '%v'", gameId, gamestate))
 	return nil
+}
+
+func init() {
+	gamestate = &model.Game{
+		turn : 1,
+		UnitMap : map[model.Location]Unit{Location{X:1, Y:1}: Unit{}},
+		PlayerStatus : map[string]int{"Hello" : 5},
+	}
 }
 
 func main() {
@@ -131,7 +139,7 @@ func main() {
 	}
 	defer resp.Body.Close()
 	fmt.Println(string(respJson))
-	unmarshalTarget := struct{ game *model.Game `json:"gameState"` }{ game : &gamestate }
+	unmarshalTarget := struct{ game *model.Game `json:"gameState"` }{ game : gamestate }
 	testbytes, _ := json.Marshal(unmarshalTarget)
 	fmt.Println(string(testbytes))
 	err = json.Unmarshal(respJson, &unmarshalTarget)
