@@ -35,7 +35,7 @@ func loadDatabase(postgresStr, loadfile string) (*sqlx.DB, error) {
 		return nil, err
 	}
 	_, err = db.Exec(string(schema))
-	return db, nil
+	return db, err
 }
 
 func NewDBHandler(postgresStr, loadfile string) (*DBHandler, error) {

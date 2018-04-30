@@ -8,12 +8,7 @@ import (
 type GameUpdater func(*Game) error
 
 func (g *GameManager) GameUpdates(gameId string, updates ...GameUpdater) error {
-	activeGame, err := g.dbh.FetchGame(gameId)
-	if err != nil {
-		return err
-	}
-	gamestate := &Game{}
-	err = json.Unmarshal(activeGame.GameState, gamestate)
+	gamestate, err := g.FetchGame(gameId)
 	if err != nil {
 		return err
 	}
