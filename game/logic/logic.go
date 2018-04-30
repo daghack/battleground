@@ -5,6 +5,27 @@ import (
 	"fmt"
 )
 
+type GameUpdater func(*Game) error
+
+func (g *GameManager) GameUpdates(gameId string, updates ...GameUpdater) error {
+	activeGame, err := g.dbh.FetchGame(gameId)
+	if err != nil {
+		return err
+	}
+	gamestate := &Game{}
+	err = json.Unmarshal(activeGame.GameState, gamestate)
+	if err != nil {
+		return err
+	}
+	for _, v := range updates {
+		err = v(gamestate)
+		if err != nil {
+			return err
+		}
+	}
+	return g.dbh.UpdateGame(gameId, gamestate)
+}
+
 type GameManager struct {
 	dbh *DBHandler
 }
@@ -27,21 +48,58 @@ func (g *GameManager) JoinGame(gameId, playerId string) error {
 	if err != nil {
 		return err
 	}
-	return g.UpdatePlayerStatus(gameId, playerId, STATUS_JOINED)
+	return g.GameUpdates(gameId, updatePlayerStatus(playerId, STATUS_JOINED))
 }
 
-func (g *GameManager) UpdatePlayerStatus(gameId, playerId string, STATUS int) error {
-	activeGame, err := g.dbh.FetchGame(gameId)
-	if err != nil {
-		return err
+func (g *GameManager) ReadyPlayer(gameId, playerId string, unitTypes []string) error {
+	return g.GameUpdates(gameId, placeUnits(playerId, unitTypes), updatePlayerStatus(playerId, STATUS_READY))
+}
+
+func (g *GameManager) MoveUnit(gameId, playerId string, srcLocation, dstLocation Location, orientation int) error {
+	return g.GameUpdates(gameId, moveUnit(playerId, srcLocation, dstLocation, orientation))
+}
+
+func updatePlayerStatus(playerId string, STATUS int) GameUpdater {
+	return func(gamestate *Game) error {
+		gamestate.PlayerStatus[playerId] = STATUS
+		return nil
 	}
-	gamestate := &Game{}
-	err = json.Unmarshal(activeGame.GameState, gamestate)
-	if err != nil {
-		return err
+}
+
+func placeUnits(playerId string, unitTypes []string) GameUpdater {
+	return func(gamestate *Game) error {
+		checkloc := Location{X:0, Y:0}
+		for i, unitType := range unitTypes {
+			loc := Location{X:i}
+			if _, ok := gamestate.UnitMap[checkloc]; ok {
+				loc.Y = 8
+			}
+			gamestate.UnitMap[loc] = Unit{
+				Orientation : ORIENT_NORTH,
+				UnitType : unitType,
+				PlayerId : playerId,
+			}
+		}
+		return nil
 	}
-	gamestate.PlayerStatus[playerId] = STATUS
-	return g.dbh.UpdateGame(gameId, gamestate)
+}
+
+func moveUnit(playerId string, srcLocation, dstLocation Location, orientation int) GameUpdater {
+	return func(gamestate *Game) error {
+		if _, ok := gamestate.UnitMap[srcLocation]; !ok {
+			return fmt.Errorf("No unit exists at src location.")
+		} else if _, ok := gamestate.UnitMap[dstLocation]; ok {
+			return fmt.Errorf("Unit already exists at dst location.")
+		}
+		unit := gamestate.UnitMap[srcLocation]
+		if unit.PlayerId != playerId {
+			return fmt.Errorf("This unit does not belong to you.")
+		}
+		unit.Orientation = orientation
+		delete(gamestate.UnitMap, srcLocation)
+		gamestate.UnitMap[dstLocation] = unit
+		return nil
+	}
 }
 
 /*

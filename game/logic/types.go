@@ -24,7 +24,6 @@ type Location struct {
 }
 
 type Unit struct {
-	Id          string `json:"unitId"`
 	Orientation int    `json:"orientation"`
 	UnitType    string `json:"unitType"`
 	PlayerId    string `json:"playerId"`
