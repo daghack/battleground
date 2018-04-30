@@ -132,6 +132,8 @@ func main() {
 	defer resp.Body.Close()
 	fmt.Println(string(respJson))
 	unmarshalTarget := struct{ game *model.Game `json:"gameState"` }{ game : &gamestate }
+	testbytes, _ := json.Marshal(unmarshalTarget)
+	fmt.Println(string(testbytes))
 	err = json.Unmarshal(respJson, &unmarshalTarget)
 	if err != nil {
 		panic(err)
