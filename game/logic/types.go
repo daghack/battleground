@@ -56,6 +56,7 @@ type jsonGame struct {
 }
 
 func (game *Game) MarshalJSON() ([]byte, error) {
+	fmt.Println("Using the Marshal Function")
 	jgame := &jsonGame{
 		UnitMap : map[string]Unit{},
 		PlayerStatus : game.PlayerStatus,
@@ -68,6 +69,7 @@ func (game *Game) MarshalJSON() ([]byte, error) {
 }
 
 func (game *Game) UnmarshalJSON(data []byte) error {
+	fmt.Println("Using the Unmarshal Function")
 	jgame := &jsonGame{}
 	err := json.Unmarshal(data, jgame)
 	if err != nil {
