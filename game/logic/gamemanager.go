@@ -43,6 +43,15 @@ func (g *GameManager) CreatePlayer(nickname, passkey string) (string, error) {
 	return g.dbh.CreatePlayer(player)
 }
 
+func (g *GameManager) PlayerLogin(nickname, passkey string) (string, error) {
+	// Obviously, in a real world application, this behavior is blatantly incorrect,
+	// as there is nothing that stops a user from looking at gamestate, then copying another
+	// player's id. Even so, it is *good enough* as long as nobody ever plays it.
+	// Consider this an area that needs to be fixed the second there are more than 2
+	// players in the whole world.
+	return g.dbh.VerifyPlayer(nickname, passkey)
+}
+
 func (g *GameManager) CreateGame(playerId string) (string, error) {
 	gameId, err := g.dbh.CreateGame(8, 8)
 	if err != nil {
@@ -53,6 +62,13 @@ func (g *GameManager) CreateGame(playerId string) (string, error) {
 }
 
 func (g *GameManager) JoinGame(gameId, playerId string) error {
+	players, err := g.dbh.ActivePlayersInGame(gameId)
+	if err != nil {
+		return err
+	}
+	if len(players) >= 2 {
+		return fmt.Errorf("Game already has the max number of players joined.")
+	}
 	err := g.dbh.JoinGame(gameId, playerId)
 	if err != nil {
 		return err

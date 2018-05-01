@@ -10,11 +10,15 @@ import (
 
 const fetchPlayer string = `select * from players where id=$1`
 const createPlayer string = `insert into players (username, passkey) values (:username, :passkey) returning id`
+const verifyPlayer string = `select id from players where username=$1 and passkey=$2`
 
 const fetchGame string = `select * from active_games where id=$1`
 const createGame string = `insert into active_games (board_size, piece_count, game_state) values (:board_size, :piece_count, :game_state) returning id`
 const joinGame string = `insert into active_players (game_id, player_id) values ($1, $2)`
 const updateGame string = `update active_games set game_state=$2 where id=$1`
+const playersInGame string = `select player_id from active_players where game_id=$1`
+const removeGame string = `delete from active_games where id=$1`
+const leaveGame string = `delete from active_players where game_id=$1 and player_id=$2`
 
 type DBHandler struct {
 	db *sqlx.DB
@@ -53,6 +57,17 @@ func (dbh *DBHandler) FetchPlayer(playerId string) (*Player, error) {
 		return nil, err
 	}
 	return player, nil
+}
+
+func (dbh *DBHandler) VerifyPlayer(username, passkey string) (string, error) {
+	// Obviously, in a real world application, this behavior is blatantly incorrect,
+	// as there is nothing that stops a user from creating an account with an identical
+	// username and passkey. Even so, it is *good enough* as long as nobody ever plays it.
+	// Consider this an area that needs to be fixed the second there are more than 2
+	// players in the whole world.
+	playerId string
+	err := dbh.db.Select(&playerId, verifyPlayer, username, passkey)
+	return playerId, err
 }
 
 func (dbh *DBHandler) CreatePlayer(player *Player) (string, error) {
@@ -104,5 +119,21 @@ func (dbh *DBHandler) UpdateGame(gameId string, gamestate *Game) error {
 		return err
 	}
 	_, err = dbh.db.Exec(updateGame, gameId, gamebytes)
+	return err
+}
+
+func (dbh *DBHandler) ActivePlayersInGame(gameId string) ([]string, error) {
+	playerIds := []string{}
+	err := dbh.db.Select(&playerIds, playersInGame, gameId)
+	return playerIds, err
+}
+
+func (dbh *DBHandler) RemoveGame(gameId string) error {
+	_, err := dbh.db.Exec(removeGame, gameId)
+	return err
+}
+
+func (dbh *DBHandler) LeaveGame(gameId, playerId string) error {
+	_, err := dbh.db.Exec(leaveGame, gameId, playerId)
 	return err
 }
