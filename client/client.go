@@ -139,14 +139,11 @@ func main() {
 	}
 	defer resp.Body.Close()
 	fmt.Println(string(respJson))
-	unmarshalTarget := struct{ game *model.Game `json:"gameState"` }{ game : gamestate }
-	testbytes, _ := json.Marshal(unmarshalTarget)
-	fmt.Println(string(testbytes))
+	unmarshalTarget := struct{ Game *model.Game `json:"gameState"` }{Game : gamestate}
 	err = json.Unmarshal(respJson, &unmarshalTarget)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(gamestate)
 	err = ebiten.Run(update, screenWidth, screenHeight, 2, "Battleground Client");
 	if err != nil {
 		panic(err)
