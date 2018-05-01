@@ -27,7 +27,7 @@ var targets = [2]model.Location{}
 var gameId = ""
 var playerId = ""
 var gamestate *model.Game
-var colorBlue color.RGBA = color.RGBA{ R : 0, G : 0, B : 255, A : 0 }
+var colorBlue color.RGBA = color.RGBA{ R : 0, G : 0, B : 255, A : 255 }
 
 func update(screen *ebiten.Image) error {
 	if ebiten.IsRunningSlowly() {

@@ -1,4 +1,4 @@
-package main // import "github.com/daghack/battleground/server"
+package main // import "github.com/daghack/battleground/game"
 
 import (
 	"encoding/json"
