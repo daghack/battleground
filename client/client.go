@@ -57,8 +57,8 @@ func update(screen *ebiten.Image) error {
 
 func init() {
 	gamestate = &model.Game{
-		turn : 1,
-		UnitMap : map[model.Location]Unit{Location{X:1, Y:1}: Unit{}},
+		Turn : 1,
+		UnitMap : map[model.Location]model.Unit{model.Location{X:1, Y:1}: model.Unit{}},
 		PlayerStatus : map[string]int{"Hello" : 5},
 	}
 }

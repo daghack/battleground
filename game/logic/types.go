@@ -2,6 +2,7 @@ package types // import "github.com/daghack/battlegrounds/game/logic"
 
 import (
 	"fmt"
+	"encoding/json"
 )
 
 const (
@@ -48,12 +49,37 @@ type Game struct {
 	Turn         int            `json:"turn"`
 }
 
-func (loc Location) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf("%d,%d", loc.X, loc.Y)), nil
+type jsonGame struct {
+	UnitMap      map[string]Unit `json:"unit_map"`
+	PlayerStatus map[string]int `json:"player_status"`
+	Turn         int            `json:"turn"`
 }
 
-func (loc *Location) UnmarshalJSON(data []byte) {
-	fmt.Println(string(data))
-	str := string(data)
-	fmt.Sscanf(str, "%d,%d", &loc.X, &loc.Y)
+func (game *Game) MarshalJSON() ([]byte, error) {
+	jgame := &jsonGame{
+		UnitMap : map[string]Unit{},
+		PlayerStatus : game.PlayerStatus,
+		Turn : game.Turn,
+	}
+	for loc, unit := range game.UnitMap {
+		jgame.UnitMap[fmt.Sprintf("%d,%d", loc.X, loc.Y)] = unit
+	}
+	return json.Marshal(jgame)
+}
+
+func (game *Game) UnmarshalJSON(data []byte) error {
+	jgame := &jsonGame{}
+	err := json.Unmarshal(data, jgame)
+	if err != nil {
+		return err
+	}
+	game.Turn = jgame.Turn
+	game.PlayerStatus = jgame.PlayerStatus
+	game.UnitMap = map[Location]Unit{}
+	for key, unit := range jgame.UnitMap {
+		loc := Location{}
+		fmt.Sscanf(key, "%d,%d", &loc.X, &loc.Y)
+		game.UnitMap[loc] = unit
+	}
+	return nil
 }
