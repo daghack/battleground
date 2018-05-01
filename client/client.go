@@ -27,10 +27,14 @@ var targets = [2]model.Location{}
 var gameId = ""
 var playerId = ""
 var gamestate *model.Game
+var colorBlue color.RGBA = color.RGBA{ R : 0, G : 0, B : 255, A : 0 }
 
 func update(screen *ebiten.Image) error {
 	if ebiten.IsRunningSlowly() {
 		return nil
+	}
+	for key, _ := range gamestate.UnitMap {
+		ebitenutil.DrawRect(screen, float64(key.X * tilesize), float64(key.Y * tilesize), tilesize, tilesize, colorBlue)
 	}
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) && mouseUp {
 		mx, my := ebiten.CursorPosition()

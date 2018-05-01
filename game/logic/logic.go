@@ -100,7 +100,7 @@ func placeUnits(playerId string, unitTypes []string) GameUpdater {
 		for i, unitType := range unitTypes {
 			loc := Location{X:i}
 			if _, ok := gamestate.UnitMap[checkloc]; ok {
-				loc.Y = 8
+				loc.Y = 7
 			}
 			gamestate.UnitMap[loc] = Unit{
 				Orientation : ORIENT_NORTH,
